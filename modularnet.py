@@ -5,8 +5,8 @@ This project simulates a Small World Modular Network of Izhikevich Neurons.
 It follows the Network creation and rewiring procedures covered in Lectures 
 8 (Modular Networks) and 9 (Dynamical Complexity).
 
-(C) Asia Belfiore, Ginevra Cepparulo, Vincent Lefeuve
-    Imperial College London, Department of Computing, Autumn Semester 2024
+Asia Belfiore, Ginevra Cepparulo, Vincent Lefeuve
+Imperial College London, Department of Computing, Autumn Semester 2024
 """
 
 from iznetwork import IzNetwork
@@ -118,7 +118,7 @@ class Small_World_Modular_Net(object):
         for module in range(self._num_modules):
             set_edges = 0
             connections = []
-            # NB: The same excitatory neuron pair is represented in two ways (every index is shifted by 1): 
+            # NB: The same excitatory neuron pair is represented in two ways (indices start at 0 = shift by 1): 
             #     - in self._communities, each neuron has indices in [0, e), with e=number of neurons per module:
             #       (c, i, j) = (2, 3, 90), i.e. in the third community, the 4th neuron connects to the 91st neuron
             #     - in self._connections, each neuron has indices in [0, n):
@@ -377,14 +377,17 @@ class Small_World_Modular_Net(object):
             - window -- window size for rolling mean (Defaults to 50ms)
             - shift -- shift size for rolling mean (Defaults to 20ms)
         """
+        neuro_per_module = len(self._excitatory)//self._num_modules
         time_array = np.arange(0, T, shift)
         plt.figure(figsize=(15, 5))
-        for i in range(self._num_modules):
+        for module in range(self._num_modules):
+            offset_start = neuro_per_module * module
+            offset_end = neuro_per_module * (module+1)
             # Sum fired over the wole module
-            fired_module = np.sum(self._fired[:, 100*i: 100 * (i+1)], axis=1)
+            fired_module = np.sum(self._fired[:, offset_start: offset_end], axis=1)
             rolling_mean = np.convolve(fired_module, np.ones(window) / window, mode='valid')[::shift]
             # Plot rolling mean
-            plt.plot(time_array[:len(rolling_mean)], rolling_mean, label=f'Module {i + 1}', linewidth=0.6)
+            plt.plot(time_array[:len(rolling_mean)], rolling_mean, label=f'Module {module + 1}', linewidth=0.6)
 
         plt.xlabel('Time (ms)')
         plt.ylabel('Mean Firing Rate $(spike \\times ms^{-1})$')
